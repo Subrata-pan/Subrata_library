@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - Reader{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Book Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="text-success mb-1">{{ book.title }}</h4>
+                {% if book.author %}
+                <p class="text-muted mb-0">
+                    <i class="fas fa-user me-1"></i>by {{ book.author }}
+                </p>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('download_book', id=book.id) }}" class="btn btn-outline-success btn-sm">
+                    <i class="fas fa-download me-1"></i>Download
+                </a>
+                <a href="{{ url_for('book_detail', id=book.id) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-info-circle me-1"></i>Details
+                </a>
+                <a href="{{ url_for('browse') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Library
+                </a>
+            </div>
+        </div>
+
+        <!-- PDF Viewer -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div id="pdfViewer" style="min-height: 80vh;">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
+                        <div class="text-center">
+                            <div class="spinner-border text-success mb-3" role="status">
+                                <span class="visually-hidden">Loading PDF...</span>
+                            </div>
+                            <p class="text-muted">Loading PDF viewer...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reading Controls -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <button id="prevPage" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span class="text-muted">
+                                Page <span id="currentPage">1</span> of <span id="totalPages">-</span>
+                            </span>
+                            <button id="nextPage" class="btn btn-outline-success btn-sm">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <button id="zoomOut" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <span id="zoomLevel" class="text-muted small">100%</span>
+                            <button id="zoomIn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex align-items-center justify-content-end gap-2">
+                            <button id="fullscreen" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-expand-arrows-alt"></i> Fullscreen
+                            </button>
+                            <button id="toggleMode" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-adjust"></i> Dark Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+// PDF.js setup
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pdfDoc = null;
+let currentPage = 1;
+let totalPages = 0;
+let scale = 1.2;
+let isDarkMode = false;
+
+// DOM elements
+const pdfViewer = document.getElementById('pdfViewer');
+const currentPageSpan = document.getElementById('currentPage');
+const totalPagesSpan = document.getElementById('totalPages');
+const zoomLevelSpan = document.getElementById('zoomLevel');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const zoomInBtn = document.getElementById('zoomIn');
+const zoomOutBtn = document.getElementById('zoomOut');
+const fullscreenBtn = document.getElementById('fullscreen');
+const toggleModeBtn = document.getElementById('toggleMode');
+
+// Load PDF
+async function loadPDF() {
+    try {
+        const url = '{{ url_for("serve_pdf", id=book.id) }}';
+        pdfDoc = await pdfjsLib.getDocument(url).promise;
+        totalPages = pdfDoc.numPages;
+        totalPagesSpan.textContent = totalPages;
+        
+        // Render first page
+        renderPage(1);
+        
+        // Update navigation
+        updateNavigationState();
+    } catch (error) {
+        console.error('Error loading PDF:', error);
+        pdfViewer.innerHTML = `
+            <div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading PDF. Please try refreshing the page.
+            </div>
+        `;
+    }
+}
+
+// Render page
+async function renderPage(pageNum) {
+    try {
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: scale });
+        
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        // Apply dark mode if enabled
+        if (isDarkMode) {
+            canvas.style.filter = 'invert(1) hue-rotate(180deg)';
+        }
+        
+        // Clear viewer and add canvas
+        pdfViewer.innerHTML = '';
+        pdfViewer.appendChild(canvas);
+        pdfViewer.style.textAlign = 'center';
+        
+        // Render page
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        
+        await page.render(renderContext).promise;
+        
+        // Update current page
+        currentPage = pageNum;
+        currentPageSpan.textContent = currentPage;
+        
+        // Update zoom level display
+        zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
+        
+        // Update navigation state
+        updateNavigationState();
+        
+    } catch (error) {
+        console.error('Error rendering page:', error);
+    }
+}
+
+// Update navigation button states
+function updateNavigationState() {
+    prevPageBtn.disabled = currentPage <= 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+}
+
+// Event listeners
+prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+        renderPage(currentPage - 1);
+    }
+});
+
+nextPageBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+        renderPage(currentPage + 1);
+    }
+});
+
+zoomInBtn.addEventListener('click', () => {
+    scale = Math.min(scale + 0.2, 3.0);
+    renderPage(currentPage);
+});
+
+zoomOutBtn.addEventListener('click', () => {
+    scale = Math.max(scale - 0.2, 0.5);
+    renderPage(currentPage);
+});
+
+fullscreenBtn.addEventListener('click', () => {
+    if (pdfViewer.requestFullscreen) {
+        pdfViewer.requestFullscreen();
+    }
+});
+
+toggleModeBtn.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    toggleModeBtn.innerHTML = isDarkMode ? 
+        '<i class="fas fa-sun"></i> Light Mode' : 
+        '<i class="fas fa-adjust"></i> Dark Mode';
+    renderPage(currentPage);
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+        case 'ArrowLeft':
+            if (currentPage > 1) renderPage(currentPage - 1);
+            break;
+        case 'ArrowRight':
+            if (currentPage < totalPages) renderPage(currentPage + 1);
+            break;
+        case '=':
+        case '+':
+            scale = Math.min(scale + 0.2, 3.0);
+            renderPage(currentPage);
+            break;
+        case '-':
+            scale = Math.max(scale - 0.2, 0.5);
+            renderPage(currentPage);
+            break;
+        case 'f':
+            if (pdfViewer.requestFullscreen) {
+                pdfViewer.requestFullscreen();
+            }
+            break;
+    }
+});
+
+// Touch/swipe support for mobile
+let startX = 0;
+pdfViewer.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+});
+
+pdfViewer.addEventListener('touchend', (e) => {
+    const endX = e.changedTouches[0].clientX;
+    const diff = startX - endX;
+    
+    if (Math.abs(diff) > 50) { // Minimum swipe distance
+        if (diff > 0 && currentPage < totalPages) {
+            renderPage(currentPage + 1); // Swipe left = next page
+        } else if (diff < 0 && currentPage > 1) {
+            renderPage(currentPage - 1); // Swipe right = previous page
+        }
+    }
+});
+
+// Load PDF on page load
+document.addEventListener('DOMContentLoaded', loadPDF);
+
+// Auto-save reading position (optional future enhancement)
+window.addEventListener('beforeunload', () => {
+    localStorage.setItem(`book_${{"{{ book.id }}"}}_page`, currentPage);
+});
+
+// Restore reading position
+const savedPage = localStorage.getItem(`book_${{"{{ book.id }}"}}_page`);
+if (savedPage && parseInt(savedPage) > 1) {
+    setTimeout(() => {
+        renderPage(parseInt(savedPage));
+    }, 1000);
+}
+</script>
+
+<style>
+#pdfViewer canvas {
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin: 1rem 0;
+}
+
+#pdfViewer:fullscreen {
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#pdfViewer:fullscreen canvas {
+    max-height: 100vh;
+    margin: 0;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .card-body .row {
+        gap: 1rem;
+    }
+    
+    .card-body .row > div {
+        text-align: center !important;
+    }
+    
+    .d-flex.gap-3 {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

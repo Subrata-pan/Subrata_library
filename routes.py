@@ -181,6 +181,28 @@ def book_detail(id):
     book = Ebook.query.get_or_404(id)
     return render_template('book_detail.html', book=book)
 
+@app.route('/read/<int:id>')
+def read_book(id):
+    """Read a book online with PDF viewer"""
+    book = Ebook.query.get_or_404(id)
+    
+    if not os.path.exists(book.file_path):
+        flash('File not found on server!', 'error')
+        return redirect(url_for('book_detail', id=id))
+    
+    return render_template('reader.html', book=book)
+
+@app.route('/pdf/<int:id>')
+def serve_pdf(id):
+    """Serve PDF file for online reading"""
+    book = Ebook.query.get_or_404(id)
+    
+    if not os.path.exists(book.file_path):
+        abort(404)
+    
+    return send_file(book.file_path, 
+                    mimetype='application/pdf')
+
 @app.route('/download/<int:id>')
 def download_book(id):
     """Download a specific book"""
