@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Login - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="text-success mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    Login to KitabGhar
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username_or_email" class="form-label">Username or Email</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="username_or_email" 
+                               name="username_or_email"
+                               value="{{ request.form.get('username_or_email', '') }}"
+                               required 
+                               placeholder="Enter your username or email">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="password" 
+                               name="password"
+                               required 
+                               placeholder="Enter your password">
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" 
+                               class="form-check-input" 
+                               id="remember_me" 
+                               name="remember_me">
+                        <label class="form-check-label" for="remember_me">
+                            Remember me
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center bg-transparent">
+                <p class="text-muted mb-0">
+                    Don't have an account? 
+                    <a href="{{ url_for('auth.register') }}" class="text-success">Register here</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Demo Users Info -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="text-success">
+                    <i class="fas fa-info-circle me-2"></i>Choose Your Role
+                </h6>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="p-2">
+                            <i class="fas fa-book-reader text-primary fa-2x mb-2"></i>
+                            <h6>Reader</h6>
+                            <small class="text-muted">Browse and read books</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2">
+                            <i class="fas fa-pen-fancy text-warning fa-2x mb-2"></i>
+                            <h6>Author</h6>
+                            <small class="text-muted">Upload and manage books</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2">
+                            <i class="fas fa-user-shield text-danger fa-2x mb-2"></i>
+                            <h6>Admin</h6>
+                            <small class="text-muted">Full system access</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

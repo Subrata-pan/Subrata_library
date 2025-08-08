@@ -1,9 +1,11 @@
 import os
 from flask import render_template, request, redirect, url_for, flash, send_file, abort, jsonify
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import or_, func
 from app import app, db
-from models import Ebook, Category
+from models import Ebook, Category, User
+from decorators import author_required, owns_book_or_admin
 
 ALLOWED_EXTENSIONS = {'pdf'}
 
@@ -31,6 +33,7 @@ def home():
                          category_stats=category_stats)
 
 @app.route('/upload', methods=['GET', 'POST'])
+@author_required
 def upload():
     """Upload a new ebook"""
     if request.method == 'POST':
@@ -91,7 +94,8 @@ def upload():
                 file_path=filepath,
                 filename=filename,
                 file_size=file_size,
-                description=description or None
+                description=description or None,
+                uploaded_by=current_user.id
             )
             
             db.session.add(new_ebook)
@@ -217,6 +221,7 @@ def download_book(id):
                     download_name=f"{book.title}.pdf")
 
 @app.route('/delete/<int:id>', methods=['POST'])
+@owns_book_or_admin
 def delete_book(id):
     """Delete a specific book"""
     book = Ebook.query.get_or_404(id)

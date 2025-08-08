@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Register - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="text-success mb-0">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Join KitabGhar
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="first_name" 
+                                   name="first_name"
+                                   value="{{ first_name or '' }}"
+                                   placeholder="Enter your first name">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="last_name" 
+                                   name="last_name"
+                                   value="{{ last_name or '' }}"
+                                   placeholder="Enter your last name">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="username" 
+                               name="username"
+                               value="{{ username or '' }}"
+                               required 
+                               placeholder="Choose a unique username">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email" 
+                               name="email"
+                               value="{{ email or '' }}"
+                               required 
+                               placeholder="Enter your email address">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Account Type</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="Reader" {% if role == 'Reader' %}selected{% endif %}>
+                                📖 Reader - Browse and read books
+                            </option>
+                            <option value="Author" {% if role == 'Author' %}selected{% endif %}>
+                                ✍️ Author - Upload and manage books
+                            </option>
+                        </select>
+                        <div class="form-text text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            You can choose Reader to browse books, or Author to upload your own books.
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password" 
+                                   name="password"
+                                   required 
+                                   placeholder="Enter a strong password">
+                            <div class="form-text text-muted">
+                                Minimum 6 characters required
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="confirm_password" 
+                                   name="confirm_password"
+                                   required 
+                                   placeholder="Confirm your password">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center bg-transparent">
+                <p class="text-muted mb-0">
+                    Already have an account? 
+                    <a href="{{ url_for('auth.login') }}" class="text-success">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Password confirmation validation
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    
+    if (password !== confirmPassword) {
+        this.setCustomValidity('Passwords do not match');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    const confirmPassword = document.getElementById('confirm_password');
+    if (confirmPassword.value) {
+        confirmPassword.dispatchEvent(new Event('input'));
+    }
+});
+</script>
+{% endblock %}
