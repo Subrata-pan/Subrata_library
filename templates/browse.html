@@ -40,7 +40,18 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label for="language" class="form-label">Language</label>
+                        <select class="form-select" id="language" name="language">
+                            <option value="">All Languages</option>
+                            {% for language in languages %}
+                            <option value="{{ language }}" {% if language == current_language %}selected{% endif %}>
+                                {{ language }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="sort" class="form-label">Sort By</label>
                         <select class="form-select" id="sort" name="sort">
                             <option value="recent" {% if current_sort == 'recent' %}selected{% endif %}>Recently Added</option>
@@ -48,7 +59,7 @@
                             <option value="author" {% if current_sort == 'author' %}selected{% endif %}>Author A-Z</option>
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-info w-100">
                             <i class="fas fa-search me-2"></i>Filter
                         </button>

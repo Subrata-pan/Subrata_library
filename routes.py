@@ -39,6 +39,7 @@ def upload():
             title = request.form.get('title', '').strip()
             author = request.form.get('author', '').strip()
             category = request.form.get('category', '').strip()
+            language = request.form.get('language', '').strip()
             description = request.form.get('description', '').strip()
             
             if not title:
@@ -86,6 +87,7 @@ def upload():
                 title=title,
                 author=author or None,
                 category=category or None,
+                language=language or None,
                 file_path=filepath,
                 filename=filename,
                 file_size=file_size,
@@ -113,6 +115,7 @@ def browse():
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '').strip()
     category_filter = request.args.get('category', '').strip()
+    language_filter = request.args.get('language', '').strip()
     sort_by = request.args.get('sort', 'recent')  # recent, title, author
     
     # Base query
@@ -130,6 +133,10 @@ def browse():
     # Apply category filter
     if category_filter:
         query = query.filter(Ebook.category == category_filter)
+    
+    # Apply language filter
+    if language_filter:
+        query = query.filter(Ebook.language == language_filter)
     
     # Apply sorting
     if sort_by == 'title':
@@ -153,11 +160,19 @@ def browse():
     ).order_by(Ebook.category).all()
     categories = [cat[0] for cat in categories if cat[0]]
     
+    # Get all languages for filter dropdown
+    languages = db.session.query(Ebook.language).distinct().filter(
+        Ebook.language.isnot(None)
+    ).order_by(Ebook.language).all()
+    languages = [lang[0] for lang in languages if lang[0]]
+    
     return render_template('browse.html', 
                          books=books,
                          categories=categories,
+                         languages=languages,
                          current_search=search,
                          current_category=category_filter,
+                         current_language=language_filter,
                          current_sort=sort_by)
 
 @app.route('/book/<int:id>')
@@ -216,6 +231,67 @@ def categories():
     return render_template('categories.html', 
                          categories=categories,
                          category_counts=category_counts)
+
+@app.route('/languages')
+def languages():
+    """List all available languages with book counts"""
+    # Define supported languages with their native scripts
+    supported_languages = {
+        'English': {'native': 'English', 'code': 'en'},
+        'Hindi': {'native': 'हिंदी', 'code': 'hi'},
+        'Bengali': {'native': 'বাংলা', 'code': 'bn'},
+        'Tamil': {'native': 'தமிழ்', 'code': 'ta'},
+        'Telugu': {'native': 'తెలుగు', 'code': 'te'},
+        'Marathi': {'native': 'मराठी', 'code': 'mr'},
+        'Gujarati': {'native': 'ગુજરાતી', 'code': 'gu'},
+        'Kannada': {'native': 'ಕನ್ನಡ', 'code': 'kn'},
+        'Malayalam': {'native': 'മലയാളം', 'code': 'ml'},
+        'Punjabi': {'native': 'ਪੰਜਾਬੀ', 'code': 'pa'},
+        'Urdu': {'native': 'اردو', 'code': 'ur'},
+        'Assamese': {'native': 'অসমীয়া', 'code': 'as'},
+        'Oriya': {'native': 'ଓଡ଼ିଆ', 'code': 'or'},
+        'Sanskrit': {'native': 'संस्कृत', 'code': 'sa'},
+        'German': {'native': 'Deutsch', 'code': 'de'},
+        'French': {'native': 'Français', 'code': 'fr'},
+        'Spanish': {'native': 'Español', 'code': 'es'},
+        'Japanese': {'native': '日本語', 'code': 'ja'},
+        'Chinese': {'native': '中文', 'code': 'zh'},
+        'Arabic': {'native': 'العربية', 'code': 'ar'}
+    }
+    
+    # Get available languages from database with book counts
+    available_languages = db.session.query(
+        Ebook.language, 
+        func.count(Ebook.id).label('count')
+    ).group_by(Ebook.language).filter(
+        Ebook.language.isnot(None)
+    ).all()
+    
+    # Combine supported languages with counts
+    language_data = []
+    for language, count in available_languages:
+        if language in supported_languages:
+            language_data.append({
+                'name': language,
+                'native': supported_languages[language]['native'],
+                'code': supported_languages[language]['code'],
+                'count': count
+            })
+    
+    # Add languages with zero books for display
+    for lang_name, lang_info in supported_languages.items():
+        if not any(l['name'] == lang_name for l in language_data):
+            language_data.append({
+                'name': lang_name,
+                'native': lang_info['native'],
+                'code': lang_info['code'],
+                'count': 0
+            })
+    
+    # Sort by name
+    language_data.sort(key=lambda x: x['name'])
+    
+    return render_template('languages.html', languages=language_data)
 
 @app.errorhandler(404)
 def not_found_error(error):

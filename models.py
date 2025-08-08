@@ -6,6 +6,7 @@ class Ebook(db.Model):
     title = db.Column(db.String(200), nullable=False, index=True)
     author = db.Column(db.String(200), nullable=True, index=True)
     category = db.Column(db.String(100), nullable=True, index=True)
+    language = db.Column(db.String(50), nullable=True, index=True)
     file_path = db.Column(db.String(500), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     file_size = db.Column(db.Integer, nullable=True)  # Size in bytes

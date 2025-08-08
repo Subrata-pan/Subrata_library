@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Languages - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="text-success mb-1">
+                    <i class="fas fa-globe me-2"></i>
+                    Explore Books in Different Languages
+                </h2>
+                <p class="text-muted">Browse your digital library by language</p>
+            </div>
+            <a href="{{ url_for('upload') }}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add Book
+            </a>
+        </div>
+
+        <!-- Languages Grid -->
+        <div class="row">
+            {% for language in languages %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 language-card" onclick="window.location.href='{{ url_for('browse', language=language.name) }}'">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <div class="language-native mb-2">
+                            {{ language.native }}
+                        </div>
+                        <div class="language-english text-muted mb-3">
+                            {{ language.name }}
+                        </div>
+                        <div class="book-count">
+                            {% if language.count > 0 %}
+                                <span class="badge bg-success">{{ language.count }} book{{ 's' if language.count != 1 else '' }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-muted">No books</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="text-success mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Language Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <div class="stat-item">
+                                    <h3 class="text-success">{{ languages|selectattr('count', 'greaterthan', 0)|list|length }}</h3>
+                                    <p class="text-muted mb-0">Languages with Books</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="stat-item">
+                                    <h3 class="text-success">{{ languages|sum(attribute='count') }}</h3>
+                                    <p class="text-muted mb-0">Total Books</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="stat-item">
+                                    <h3 class="text-success">{{ languages|length }}</h3>
+                                    <p class="text-muted mb-0">Supported Languages</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Languages -->
+        {% set popular_languages = languages|selectattr('count', 'greaterthan', 0)|sort(attribute='count', reverse=true)|list %}
+        {% if popular_languages %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="text-success mb-0">
+                            <i class="fas fa-fire me-2"></i>
+                            Most Popular Languages
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for language in popular_languages[:6] %}
+                            <div class="col-md-4 mb-3">
+                                <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light">
+                                    <div>
+                                        <strong class="text-success">{{ language.native }}</strong>
+                                        <small class="text-muted d-block">{{ language.name }}</small>
+                                    </div>
+                                    <span class="badge bg-success">{{ language.count }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.language-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 140px;
+}
+
+.language-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: var(--success-light);
+}
+
+.language-native {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.language-english {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.book-count {
+    margin-top: auto;
+}
+
+.stat-item {
+    padding: 1rem;
+}
+
+.stat-item h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .language-native {
+        font-size: 1.4rem;
+    }
+    
+    .language-card {
+        min-height: 120px;
+    }
+}
+
+/* Different font families for different scripts */
+.language-card:has(.language-native:contains('हिंदी')),
+.language-card:has(.language-native:contains('मराठी')),
+.language-card:has(.language-native:contains('संस्कृत')) {
+    font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('বাংলা')),
+.language-card:has(.language-native:contains('অসমীয়া')) {
+    font-family: 'Noto Sans Bengali', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('தமிழ்')) {
+    font-family: 'Noto Sans Tamil', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('తెలుగు')) {
+    font-family: 'Noto Sans Telugu', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('ಕನ್ನಡ')) {
+    font-family: 'Noto Sans Kannada', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('മലയാളം')) {
+    font-family: 'Noto Sans Malayalam', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('ગુજરાતી')) {
+    font-family: 'Noto Sans Gujarati', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('ਪੰਜਾਬੀ')) {
+    font-family: 'Noto Sans Gurmukhi', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('ଓଡ଼ିଆ')) {
+    font-family: 'Noto Sans Oriya', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('اردو')) {
+    font-family: 'Noto Nastaliq Urdu', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('日本語')) {
+    font-family: 'Noto Sans JP', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('中文')) {
+    font-family: 'Noto Sans SC', 'Poppins', sans-serif;
+}
+
+.language-card:has(.language-native:contains('العربية')) {
+    font-family: 'Noto Sans Arabic', 'Poppins', sans-serif;
+}
+</style>
+{% endblock %}
