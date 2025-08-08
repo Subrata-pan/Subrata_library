@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload eBook – KitabGhar</title>
+</head>
+<body>
+    <h2>Upload a New eBook</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Title:</label><br>
+        <input type="text" name="title" required><br><br>
+
+        <label>Author:</label><br>
+        <input type="text" name="author"><br><br>
+
+        <label>Category:</label><br>
+        <input type="text" name="category"><br><br>
+
+        <label>Select PDF:</label><br>
+        <input type="file" name="ebook" required><br><br>
+
+        <input type="submit" value="Upload">
+    </form>
+    <p><a href="{{ url_for('home') }}">← Back to Home</a></p>
+</body>
+</html>
