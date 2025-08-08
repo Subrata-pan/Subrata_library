@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KitabGhar - Digital Library{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,10 +18,10 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">
-                <i class="fas fa-book-open text-info me-2"></i>
+                <i class="fas fa-book-open text-success me-2"></i>
                 KitabGhar
             </a>
             
@@ -69,11 +71,11 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark border-top mt-5 py-4">
+    <footer class="bg-light border-top mt-5 py-4">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h6 class="text-info">KitabGhar</h6>
+                    <h6 class="text-success">KitabGhar</h6>
                     <p class="text-muted small">Your digital library for managing and accessing PDF ebooks.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
