@@ -1,0 +1,130 @@
+/* Custom styles for KitabGhar */
+
+/* Hero section styling */
+.hero-section {
+    background: linear-gradient(135deg, var(--bs-dark) 0%, var(--bs-secondary) 100%);
+}
+
+/* Card hover effects */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* File input styling */
+.form-control[type="file"] {
+    border: 2px dashed var(--bs-border-color);
+    background: var(--bs-dark);
+    transition: border-color 0.3s ease;
+}
+
+.form-control[type="file"]:hover {
+    border-color: var(--bs-info);
+}
+
+/* Book grid responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 1rem !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Loading states */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Custom badge styles */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+/* Pagination styling */
+.pagination .page-link {
+    background-color: var(--bs-dark);
+    border-color: var(--bs-border-color);
+    color: var(--bs-info);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--bs-secondary);
+    border-color: var(--bs-info);
+    color: var(--bs-info);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--bs-info);
+    border-color: var(--bs-info);
+    color: var(--bs-dark);
+}
+
+/* Search form styling */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-info);
+    box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+}
+
+/* Footer styling */
+footer {
+    margin-top: auto;
+}
+
+/* Text truncation for long titles */
+.card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    max-height: 2.8em;
+}
+
+/* Icon spacing consistency */
+.fas, .far, .fab {
+    margin-right: 0.25rem;
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-info);
+}

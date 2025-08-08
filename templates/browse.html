@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Books - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-info mb-0">
+                <i class="fas fa-search me-2"></i>
+                Browse Books
+            </h2>
+            <a href="{{ url_for('upload') }}" class="btn btn-info">
+                <i class="fas fa-plus me-2"></i>Add Book
+            </a>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="card bg-dark border mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="search" 
+                               name="search" 
+                               value="{{ current_search }}"
+                               placeholder="Search by title, author, or description">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category }}" {% if category == current_category %}selected{% endif %}>
+                                {{ category }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sort" class="form-label">Sort By</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="recent" {% if current_sort == 'recent' %}selected{% endif %}>Recently Added</option>
+                            <option value="title" {% if current_sort == 'title' %}selected{% endif %}>Title A-Z</option>
+                            <option value="author" {% if current_sort == 'author' %}selected{% endif %}>Author A-Z</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-search me-2"></i>Filter
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Clear Filters -->
+                {% if current_search or current_category %}
+                <div class="mt-3">
+                    <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i>Clear Filters
+                    </a>
+                    <span class="text-muted ms-2">
+                        {% if current_search %}
+                            Searching for: <strong>"{{ current_search }}"</strong>
+                        {% endif %}
+                        {% if current_category %}
+                            Category: <strong>{{ current_category }}</strong>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Results -->
+        {% if books.items %}
+        <div class="mb-4">
+            <p class="text-muted">
+                Showing {{ books.page }} of {{ books.pages }} pages 
+                ({{ books.total }} book{{ 's' if books.total != 1 else '' }} total)
+            </p>
+        </div>
+
+        <!-- Books Grid -->
+        <div class="row">
+            {% for book in books.items %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card bg-dark border h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">{{ book.title }}</h5>
+                        
+                        {% if book.author %}
+                        <p class="card-text text-muted mb-2">
+                            <i class="fas fa-user me-1"></i>{{ book.author }}
+                        </p>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            {% if book.category %}
+                            <span class="badge bg-secondary me-2">{{ book.category }}</span>
+                            {% endif %}
+                            <span class="badge bg-dark border">{{ book.get_file_size_mb() }}</span>
+                        </div>
+                        
+                        {% if book.description %}
+                        <p class="card-text text-muted small">
+                            {{ book.description[:100] }}{% if book.description|length > 100 %}...{% endif %}
+                        </p>
+                        {% endif %}
+                        
+                        <p class="card-text text-muted small">
+                            <i class="fas fa-calendar me-1"></i>{{ book.get_upload_date_formatted() }}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('book_detail', id=book.id) }}" class="btn btn-outline-info btn-sm flex-fill">
+                                <i class="fas fa-eye me-1"></i>Details
+                            </a>
+                            <a href="{{ url_for('download_book', id=book.id) }}" class="btn btn-info btn-sm">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if books.pages > 1 %}
+        <nav aria-label="Book pagination">
+            <ul class="pagination justify-content-center">
+                {% if books.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('browse', page=books.prev_num, search=current_search, category=current_category, sort=current_sort) }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in books.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != books.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('browse', page=page_num, search=current_search, category=current_category, sort=current_sort) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if books.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('browse', page=books.next_num, search=current_search, category=current_category, sort=current_sort) }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <!-- No Results -->
+        <div class="text-center py-5">
+            <i class="fas fa-book-open text-muted" style="font-size: 4rem;"></i>
+            <h3 class="text-muted mt-3">No Books Found</h3>
+            {% if current_search or current_category %}
+            <p class="text-muted">Try adjusting your search criteria or <a href="{{ url_for('browse') }}">view all books</a>.</p>
+            {% else %}
+            <p class="text-muted mb-4">Your library is empty. Start by uploading your first book!</p>
+            <a href="{{ url_for('upload') }}" class="btn btn-info">
+                <i class="fas fa-upload me-2"></i>Upload First Book
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

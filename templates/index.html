@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}KitabGhar - Digital Library{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="hero-section text-center mb-5 p-5 rounded bg-dark border">
+            <h1 class="display-4 text-info mb-3">
+                <i class="fas fa-book-open me-3"></i>
+                Welcome to KitabGhar
+            </h1>
+            <p class="lead text-muted mb-4">Your personal digital library for managing and accessing PDF ebooks</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{{ url_for('upload') }}" class="btn btn-info btn-lg">
+                    <i class="fas fa-upload me-2"></i>Upload Book
+                </a>
+                <a href="{{ url_for('browse') }}" class="btn btn-outline-info btn-lg">
+                    <i class="fas fa-search me-2"></i>Browse Library
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card bg-dark border h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-book text-info fa-2x mb-3"></i>
+                        <h3 class="text-info">{{ total_books }}</h3>
+                        <p class="text-muted mb-0">Total Books</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-dark border h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tags text-info fa-2x mb-3"></i>
+                        <h3 class="text-info">{{ total_categories }}</h3>
+                        <p class="text-muted mb-0">Categories</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-dark border h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock text-info fa-2x mb-3"></i>
+                        <h3 class="text-info">{{ recent_books|length }}</h3>
+                        <p class="text-muted mb-0">Recent Uploads</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Books -->
+        {% if recent_books %}
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-info">
+                    <i class="fas fa-clock me-2"></i>
+                    Recently Added
+                </h2>
+                <a href="{{ url_for('browse') }}" class="btn btn-outline-info">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            
+            <div class="row">
+                {% for book in recent_books %}
+                <div class="col-lg-6 col-xl-4 mb-3">
+                    <div class="card bg-dark border h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-info">{{ book.title }}</h6>
+                            {% if book.author %}
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-user me-1"></i>{{ book.author }}
+                                </p>
+                            {% endif %}
+                            {% if book.category %}
+                                <span class="badge bg-secondary mb-2">{{ book.category }}</span>
+                            {% endif %}
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-calendar me-1"></i>{{ book.get_upload_date_formatted() }}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top">
+                            <a href="{{ url_for('book_detail', id=book.id) }}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Category Overview -->
+        {% if category_stats %}
+        <div class="mb-5">
+            <h2 class="text-info mb-4">
+                <i class="fas fa-chart-pie me-2"></i>
+                Categories
+            </h2>
+            <div class="row">
+                {% for category, count in category_stats %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card bg-dark border">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-info mb-1">{{ category }}</h6>
+                                    <p class="text-muted small mb-0">{{ count }} book{{ 's' if count != 1 else '' }}</p>
+                                </div>
+                                <a href="{{ url_for('browse', category=category) }}" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-dark border">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h5>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a href="{{ url_for('upload') }}" class="btn btn-outline-info">
+                                <i class="fas fa-plus me-2"></i>Add New Book
+                            </a>
+                            <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-list me-2"></i>Browse All Books
+                            </a>
+                            <a href="{{ url_for('browse', sort='recent') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-clock me-2"></i>Recent Uploads
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

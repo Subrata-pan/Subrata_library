@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Book Details -->
+        <div class="card bg-dark border">
+            <div class="card-header bg-transparent border-bottom">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h3 class="text-info mb-1">{{ book.title }}</h3>
+                        {% if book.author %}
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-user me-1"></i>by {{ book.author }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% if book.category %}
+                    <span class="badge bg-secondary">{{ book.category }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if book.description %}
+                <div class="mb-4">
+                    <h5 class="text-info">Description</h5>
+                    <p class="text-muted">{{ book.description }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-info">File Information</h6>
+                        <ul class="list-unstyled text-muted">
+                            <li class="mb-2">
+                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                <strong>Filename:</strong> {{ book.filename }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-weight-hanging me-2"></i>
+                                <strong>File Size:</strong> {{ book.get_file_size_mb() }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-calendar me-2"></i>
+                                <strong>Upload Date:</strong> {{ book.get_upload_date_formatted() }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-info">Book Details</h6>
+                        <ul class="list-unstyled text-muted">
+                            <li class="mb-2">
+                                <i class="fas fa-book me-2"></i>
+                                <strong>Title:</strong> {{ book.title }}
+                            </li>
+                            {% if book.author %}
+                            <li class="mb-2">
+                                <i class="fas fa-user me-2"></i>
+                                <strong>Author:</strong> {{ book.author }}
+                            </li>
+                            {% endif %}
+                            {% if book.category %}
+                            <li class="mb-2">
+                                <i class="fas fa-tag me-2"></i>
+                                <strong>Category:</strong> {{ book.category }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Actions -->
+        <div class="card bg-dark border mb-4">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="text-info mb-0">
+                    <i class="fas fa-cog me-2"></i>Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('download_book', id=book.id) }}" class="btn btn-info">
+                        <i class="fas fa-download me-2"></i>Download PDF
+                    </a>
+                    
+                    <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Browse
+                    </a>
+                    
+                    {% if book.category %}
+                    <a href="{{ url_for('browse', category=book.category) }}" class="btn btn-outline-info">
+                        <i class="fas fa-tag me-2"></i>More in {{ book.category }}
+                    </a>
+                    {% endif %}
+                    
+                    {% if book.author %}
+                    <a href="{{ url_for('browse', search=book.author) }}" class="btn btn-outline-info">
+                        <i class="fas fa-user me-2"></i>More by {{ book.author }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Book -->
+        <div class="card bg-dark border border-danger">
+            <div class="card-header bg-transparent border-bottom border-danger">
+                <h6 class="text-danger mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    This action cannot be undone. The book file will be permanently deleted from the server.
+                </p>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash me-2"></i>Delete Book
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border border-danger">
+            <div class="modal-header border-bottom border-danger">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    Are you sure you want to delete <strong class="text-info">"{{ book.title }}"</strong>?
+                </p>
+                <p class="text-muted small">
+                    This action is permanent and cannot be undone. The PDF file will be removed from the server.
+                </p>
+            </div>
+            <div class="modal-footer border-top border-danger">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_book', id=book.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete Book
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-focus on delete confirmation
+document.getElementById('deleteModal').addEventListener('shown.bs.modal', function () {
+    document.querySelector('#deleteModal .btn-danger').focus();
+});
+</script>
+{% endblock %}

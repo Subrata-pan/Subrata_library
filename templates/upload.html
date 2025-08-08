@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Book - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-dark border">
+            <div class="card-header bg-transparent border-bottom">
+                <h3 class="text-info mb-0">
+                    <i class="fas fa-upload me-2"></i>
+                    Upload New eBook
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="title" 
+                                   name="title" 
+                                   required 
+                                   placeholder="Enter book title">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="author" class="form-label">Author</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="author" 
+                                   name="author" 
+                                   placeholder="Enter author name">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="category" 
+                                   name="category" 
+                                   list="categoryList"
+                                   placeholder="Enter or select category">
+                            {% if categories %}
+                            <datalist id="categoryList">
+                                {% for category in categories %}
+                                <option value="{{ category.name }}">
+                                {% endfor %}
+                            </datalist>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3" 
+                                      placeholder="Enter book description (optional)"></textarea>
+                        </div>
+                        
+                        <div class="col-12 mb-4">
+                            <label for="ebook" class="form-label">PDF File <span class="text-danger">*</span></label>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="ebook" 
+                                   name="ebook" 
+                                   accept=".pdf" 
+                                   required>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Only PDF files are allowed. Maximum file size: 50MB
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-info" id="submitBtn">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Book
+                        </button>
+                        <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Home
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Upload Guidelines -->
+        <div class="card bg-dark border mt-4">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="text-info mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Upload Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Only PDF files are accepted
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Maximum file size is 50MB
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Title is required, other fields are optional
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Files are securely stored and can be downloaded later
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('ebook');
+    
+    // Check file size
+    if (fileInput.files[0] && fileInput.files[0].size > 50 * 1024 * 1024) {
+        e.preventDefault();
+        alert('File size exceeds 50MB limit!');
+        return;
+    }
+    
+    // Update button to show uploading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    submitBtn.disabled = true;
+});
+
+// Show file size when selected
+document.getElementById('ebook').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        const helpText = e.target.nextElementSibling;
+        helpText.innerHTML = `<i class="fas fa-info-circle me-1"></i>Selected: ${file.name} (${sizeMB} MB)`;
+    }
+});
+</script>
+{% endblock %}
