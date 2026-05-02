@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-12">
+    <div class="col-lg-9">
         <!-- Book Header -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -45,44 +45,84 @@
         </div>
 
         <!-- Reading Controls -->
-        <div class="card mt-3">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center gap-3">
-                            <button id="prevPage" class="btn btn-outline-success btn-sm">
-                                <i class="fas fa-chevron-left"></i> Previous
-                            </button>
-                            <span class="text-muted">
-                                Page <span id="currentPage">1</span> of <span id="totalPages">-</span>
-                            </span>
-                            <button id="nextPage" class="btn btn-outline-success btn-sm">
-                                Next <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="d-flex align-items-center justify-content-center gap-2">
-                            <button id="zoomOut" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-search-minus"></i>
-                            </button>
-                            <span id="zoomLevel" class="text-muted small">100%</span>
-                            <button id="zoomIn" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-search-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <div class="d-flex align-items-center justify-content-end gap-2">
-                            <button id="fullscreen" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-expand-arrows-alt"></i> Fullscreen
-                            </button>
-                            <button id="toggleMode" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-adjust"></i> Dark Mode
-                            </button>
-                        </div>
-                    </div>
+        <div class="reading-controls-toolbar">
+            <div class="reading-controls-container">
+                <!-- Navigation Controls -->
+                <div class="control-group">
+                    <button id="prevPage" class="btn btn-outline-success btn-sm control-btn">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span class="page-info text-muted">
+                        Page <span id="currentPage">1</span> of <span id="totalPages">-</span>
+                    </span>
+                    <button id="nextPage" class="btn btn-outline-success btn-sm control-btn">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
+
+                <!-- Zoom Controls -->
+                <div class="control-group">
+                    <button id="zoomOut" class="btn btn-outline-secondary btn-sm control-btn">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <span id="zoomLevel" class="zoom-info text-muted small">100%</span>
+                    <button id="zoomIn" class="btn btn-outline-secondary btn-sm control-btn">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                </div>
+
+                <!-- View Controls -->
+                <div class="control-group">
+                    <button id="fullscreen" class="btn btn-outline-secondary btn-sm control-btn">
+                        <i class="fas fa-expand-arrows-alt"></i> Fullscreen
+                    </button>
+                    <button id="toggleMode" class="btn btn-outline-secondary btn-sm control-btn">
+                        <i class="fas fa-adjust"></i> Dark Mode
+                    </button>
+                </div>
+
+                <!-- Additional Controls -->
+                <div class="control-group">
+                    <button id="bookmarkBtn" class="btn btn-outline-success btn-sm control-btn" data-bs-toggle="tooltip" title="Add Bookmark">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                    <button id="ttsRead" class="btn btn-outline-success btn-sm control-btn" data-bs-toggle="tooltip" title="Read Aloud">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                    <button id="shareProgress" class="btn btn-outline-success btn-sm control-btn" data-bs-toggle="tooltip" title="Share Progress">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100">
+                    <div id="readingProgressBar" class="progress-bar bg-success" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 mt-3 mt-lg-0">
+        <!-- Sidebar: Recommended for You -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-magic me-2"></i>Recommended for You
+            </div>
+            <div class="card-body p-2" id="recommendations">
+                <div class="text-center text-muted small">Loading recommendations...</div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Bookmarks -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bookmark me-2"></i>Your Bookmarks
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="bookmarkList">
+                    <li class="list-group-item text-muted small">No bookmarks yet.</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -101,6 +141,7 @@ let currentPage = 1;
 let totalPages = 0;
 let scale = 1.2;
 let isDarkMode = false;
+let totalTextContent = '';
 
 // DOM elements
 const pdfViewer = document.getElementById('pdfViewer');
@@ -167,6 +208,13 @@ async function renderPage(pageNum) {
         };
         
         await page.render(renderContext).promise;
+
+        // Extract text content for TTS
+        try {
+            const textContentObj = await page.getTextContent();
+            const strings = textContentObj.items.map(i => i.str);
+            totalTextContent = strings.join(' ');
+        } catch (e) { totalTextContent = ''; }
         
         // Update current page
         currentPage = pageNum;
@@ -177,6 +225,14 @@ async function renderPage(pageNum) {
         
         // Update navigation state
         updateNavigationState();
+
+        // Update progress bar
+        if (totalPages > 0) {
+            const pct = Math.round((currentPage / totalPages) * 100);
+            const bar = document.getElementById('readingProgressBar');
+            bar.style.width = pct + '%';
+            bar.setAttribute('aria-valuenow', pct);
+        }
         
     } catch (error) {
         console.error('Error rendering page:', error);
@@ -226,6 +282,113 @@ toggleModeBtn.addEventListener('click', () => {
     renderPage(currentPage);
 });
 
+// Bookmarks
+async function loadBookmarks() {
+    try {
+        const res = await fetch(`/api/bookmarks/{{ book.id }}`);
+        const data = await res.json();
+        const list = document.getElementById('bookmarkList');
+        list.innerHTML = '';
+        if (!data.length) {
+            list.innerHTML = '<li class="list-group-item text-muted small">No bookmarks yet.</li>';
+            return;
+        }
+        data.forEach(b => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<span>Page ${b.page}${b.note ? ' - ' + b.note : ''}</span><button class='btn btn-sm btn-outline-secondary' data-page='${b.page}'>Go</button>`;
+            li.querySelector('button').addEventListener('click', () => renderPage(b.page));
+            list.appendChild(li);
+        });
+    } catch (e) { console.warn(e); }
+}
+
+async function addBookmark() {
+    const note = prompt('Add an optional note for this bookmark:', '');
+    try {
+        await fetch('/api/bookmarks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ebook_id: {{ book.id }}, page: currentPage, note })
+        });
+        loadBookmarks();
+    } catch (e) { console.warn(e); }
+}
+
+document.getElementById('bookmarkBtn').addEventListener('click', addBookmark);
+
+// Save progress
+async function saveProgress() {
+    try {
+        await fetch('/api/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ebook_id: {{ book.id }}, current_page: currentPage, total_pages: totalPages })
+        });
+    } catch (e) { /* ignore */ }
+}
+
+// Call save on page render
+const _renderPageOrig = renderPage;
+renderPage = async function(pageNum){
+    await _renderPageOrig(pageNum);
+    saveProgress();
+    // Dispatch event so global listeners can update
+    document.dispatchEvent(new CustomEvent('kg:page-changed', { detail: { ebookId: {{ book.id }}, page: currentPage }}));
+}
+
+// Recommendations
+async function loadRecommendations() {
+    try {
+        const res = await fetch(`/api/recommendations?ebook_id={{ book.id }}`);
+        const items = await res.json();
+        const container = document.getElementById('recommendations');
+        container.innerHTML = '';
+        if (!items.length) {
+            container.innerHTML = '<div class="text-center text-muted small">No recommendations available.</div>';
+            return;
+        }
+        items.slice(0,6).forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'p-2 border-bottom';
+            div.innerHTML = `
+                <div class='small fw-semibold text-success'>${item.title}</div>
+                <div class='small text-muted'>${item.author || ''}</div>
+                <div class='mt-1 d-flex gap-2'>
+                    <a class='btn btn-sm btn-success' href='/read/${item.id}'>Read</a>
+                    <a class='btn btn-sm btn-outline-secondary' href='/book/${item.id}'>Info</a>
+                </div>`;
+            container.appendChild(div);
+        });
+    } catch (e) { console.warn(e); }
+}
+
+// Text to Speech for current page
+function speak(text) {
+    if (!window.__KG_TTS_ENABLED__ || !window.__KG_TTS_ENABLED__()) {
+        alert('Enable Text to Speech from the accessibility menu.');
+        return;
+    }
+    const synth = window.speechSynthesis;
+    if (synth.speaking) synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.0;
+    synth.speak(utter);
+}
+
+document.getElementById('ttsRead').addEventListener('click', ()=>{
+    if (totalTextContent) speak(totalTextContent);
+});
+
+// Share reading progress
+document.getElementById('shareProgress').addEventListener('click', ()=>{
+    const pct = totalPages ? Math.round((currentPage/totalPages)*100) : null;
+    const text = pct ? `I'm ${pct}% through "{{ book.title }}" on KitabGhar!` : `Reading "{{ book.title }}" on KitabGhar.`;
+    const shareData = { title: 'My Reading Progress', text, url: window.location.href };
+    if (navigator.share) { navigator.share(shareData).catch(()=>{}); }
+    else { navigator.clipboard.writeText(text + ' ' + window.location.href); alert('Progress copied to clipboard!'); }
+});
+
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
     switch(e.key) {
@@ -248,6 +411,12 @@ document.addEventListener('keydown', (e) => {
             if (pdfViewer.requestFullscreen) {
                 pdfViewer.requestFullscreen();
             }
+            break;
+        case 'b':
+            addBookmark();
+            break;
+        case 'r':
+            if (totalTextContent) speak(totalTextContent);
             break;
     }
 });
@@ -272,19 +441,26 @@ pdfViewer.addEventListener('touchend', (e) => {
 });
 
 // Load PDF on page load
-document.addEventListener('DOMContentLoaded', loadPDF);
+document.addEventListener('DOMContentLoaded', ()=>{
+    loadPDF();
+    loadBookmarks();
+    loadRecommendations();
+});
 
 // Auto-save reading position (optional future enhancement)
 window.addEventListener('beforeunload', () => {
     localStorage.setItem(`book_{{ book.id }}_page`, currentPage);
 });
 
-// Restore reading position
+// Restore reading position (local as fallback)
 const savedPage = localStorage.getItem(`book_{{ book.id }}_page`);
 if (savedPage && parseInt(savedPage) > 1) {
-    setTimeout(() => {
-        renderPage(parseInt(savedPage));
-    }, 1000);
+    setTimeout(() => { renderPage(parseInt(savedPage)); }, 800);
+} else {
+    // Try server progress
+    fetch(`/api/progress/{{ book.id }}`).then(r=>r.json()).then(p=>{
+        if (p && p.current_page && p.current_page > 1) renderPage(p.current_page);
+    }).catch(()=>{});
 }
 </script>
 
@@ -311,6 +487,10 @@ if (savedPage && parseInt(savedPage) > 1) {
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.high-contrast #pdfViewer canvas {
+    filter: contrast(1.2) !important;
 }
 
 @media (max-width: 768px) {

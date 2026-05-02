@@ -26,11 +26,11 @@ def admin_required(f):
         if not current_user.is_authenticated:
             flash('Please log in to access this page.', 'error')
             return redirect(url_for('auth.login'))
-        
-        if not current_user.is_admin():
+
+        if current_user.role != 'admin':
             flash('Admin access required.', 'error')
             abort(403)
-        
+
         return f(*args, **kwargs)
     return decorated_function
 

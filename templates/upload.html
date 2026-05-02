@@ -13,7 +13,8 @@
                 </h3>
             </div>
             <div class="card-body">
-                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
@@ -91,15 +92,32 @@
                         
                         <div class="col-12 mb-4">
                             <label for="ebook" class="form-label">PDF File <span class="text-danger">*</span></label>
-                            <input type="file" 
-                                   class="form-control" 
-                                   id="ebook" 
-                                   name="ebook" 
-                                   accept=".pdf" 
+                            <input type="file"
+                                   class="form-control"
+                                   id="ebook"
+                                   name="ebook"
+                                   accept=".pdf"
                                    required>
                             <div class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Only PDF files are allowed. Maximum file size: 50MB
+                            </div>
+                            <div class="form-text text-info">
+                                <i class="fas fa-clock me-1"></i>
+                                <strong>Note:</strong> Your uploaded book will be reviewed by our admin before appearing in the library.
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-4">
+                            <label for="cover" class="form-label">Book Cover Image</label>
+                            <input type="file"
+                                   class="form-control"
+                                   id="cover"
+                                   name="cover"
+                                   accept="image/*">
+                            <div class="form-text text-muted">
+                                <i class="fas fa-image me-1"></i>
+                                Optional: Upload a cover image (JPG, PNG, GIF). Maximum file size: 5MB
                             </div>
                         </div>
                     </div>
@@ -176,6 +194,16 @@ document.getElementById('ebook').addEventListener('change', function(e) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
         const helpText = e.target.nextElementSibling;
         helpText.innerHTML = `<i class="fas fa-info-circle me-1"></i>Selected: ${file.name} (${sizeMB} MB)`;
+    }
+});
+
+// Show cover image preview
+document.getElementById('cover').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        const helpText = e.target.nextElementSibling;
+        helpText.innerHTML = `<i class="fas fa-image me-1"></i>Selected: ${file.name} (${sizeMB} MB)`;
     }
 });
 </script>

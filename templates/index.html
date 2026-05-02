@@ -3,23 +3,38 @@
 {% block title %}KitabGhar - Digital Library{% endblock %}
 
 {% block content %}
+<style>
+  .hero-section {
+    position: relative;
+    background: url("{{ url_for('static', filename='images/background.jpg') }}") no-repeat center center;
+    background-size: cover;
+    color: white;
+    padding: 6rem 2rem;
+    border-radius: 0.5rem;
+    box-shadow: inset 0 0 0 1000px rgba(255, 255, 255, 0.4);
+  }
+  .hero-section h1, .hero-section p {
+    text-shadow: 0 0 10px rgba(0,0,0,0.7);
+  }
+
+</style>
+
 <div class="row">
     <div class="col-12">
         <!-- Hero Section -->
-        <div class="hero-section text-center mb-5 p-5 rounded"}
+        <div class="hero-section text-center mb-5 p-5 rounded">
             <h1 class="display-4 mb-3">
-                <i class="fas fa-book-open me-3"></i>
-                Welcome to KitabGhar
+                <!-- Removed blurry logo text as per request -->
             </h1>
-            <p class="lead text-muted mb-4">Your personal digital library for managing and accessing PDF ebooks</p>
+            <p class="lead text-dark mb-4">Your personal digital library for managing and accessing PDF ebooks</p>
             <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="{{ url_for('browse') }}" class="btn btn-success btn-lg">
+                <a href="{{ url_for('browse') if current_user.is_authenticated else url_for('auth.login', next=url_for('browse')) }}" class="btn btn-success btn-lg">
                     <i class="fas fa-book-open me-2"></i>Start Reading
                 </a>
-                <a href="{{ url_for('languages') }}" class="btn btn-outline-success btn-lg">
+                <a href="{{ url_for('languages') }}" class="btn btn-success btn-lg">
                     <i class="fas fa-globe me-2"></i>Browse Languages
                 </a>
-                <a href="{{ url_for('upload') }}" class="btn btn-outline-secondary btn-lg">
+                <a href="{{ url_for('upload') }}" class="btn btn-success btn-lg">
                     <i class="fas fa-upload me-2"></i>Upload Book
                 </a>
             </div>
@@ -27,8 +42,8 @@
 
         <!-- Statistics -->
         <div class="row mb-5">
-            <div class="col-md-4">
-                <div class="card h-100"}
+            <div class="col-md-6">
+                <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-book text-info fa-2x mb-3"></i>
                         <h3 class="text-success">{{ total_books }}</h3>
@@ -36,17 +51,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card h-100"}
-                    <div class="card-body text-center">
-                        <i class="fas fa-tags text-info fa-2x mb-3"></i>
-                        <h3 class="text-success">{{ total_categories }}</h3>
-                        <p class="text-muted mb-0">Categories</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100"}
+            <div class="col-md-6">
+                <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="fas fa-clock text-info fa-2x mb-3"></i>
                         <h3 class="text-success">{{ recent_books|length }}</h3>
@@ -69,19 +75,25 @@
                 </a>
             </div>
             
-            <div class="row">
+            <div class="row recent-books-grid">
                 {% for book in recent_books %}
-                <div class="col-lg-6 col-xl-4 mb-3">
-                    <div class="card h-100"}
+                <div class="col-sm-6 col-lg-4 col-xl-3 mb-3">
+                    <div class="card h-100 book-card recent-book-card">
                         <div class="card-body">
+{% if book.cover %}
+   <img src="{{ url_for('static', filename='uploads/' ~ book.cover) }}"
+        alt="{{ book.title }}"
+        class="img-fluid rounded shadow-sm d-block mx-auto mb-2">
+{% else %}
+   <img src="{{ url_for('static', filename='images/recent_add.jpg') }}"
+        alt="Recent book"
+        class="img-fluid rounded shadow-sm d-block mx-auto mb-2">
+{% endif %}
                             <h6 class="card-title text-success">{{ book.title }}</h6>
                             {% if book.author %}
                                 <p class="card-text text-muted small mb-2">
                                     <i class="fas fa-user me-1"></i>{{ book.author }}
                                 </p>
-                            {% endif %}
-                            {% if book.category %}
-                                <span class="badge bg-secondary mb-2">{{ book.category }}</span>
                             {% endif %}
                             <p class="card-text text-muted small">
                                 <i class="fas fa-calendar me-1"></i>{{ book.get_upload_date_formatted() }}
@@ -94,35 +106,6 @@
                                 </a>
                                 <a href="{{ url_for('book_detail', id=book.id) }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-info"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Category Overview -->
-        {% if category_stats %}
-        <div class="mb-5">
-            <h2 class="text-info mb-4">
-                <i class="fas fa-chart-pie me-2"></i>
-                Categories
-            </h2>
-            <div class="row">
-                {% for category, count in category_stats %}
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card bg-dark border">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="card-title text-success mb-1">{{ category }}</h6>
-                                    <p class="text-muted small mb-0">{{ count }} book{{ 's' if count != 1 else '' }}</p>
-                                </div>
-                                <a href="{{ url_for('browse', category=category) }}" class="btn btn-outline-info btn-sm">
-                                    <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
                         </div>

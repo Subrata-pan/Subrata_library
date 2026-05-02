@@ -75,13 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(function(link) {
         link.addEventListener('click', function(e) {
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                e.preventDefault();
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+            const href = this.getAttribute('href');
+            if (href && href !== '#') {
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             }
         });
     });
@@ -135,6 +138,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Social sharing for selected text
+    document.addEventListener('mouseup', function(event) {
+        const selection = window.getSelection().toString().trim();
+        if (selection && selection.length > 5) {
+            const shareData = {
+                title: 'Quote from KitabGhar',
+                text: `"${selection}" — via KitabGhar`,
+                url: window.location.href
+            };
+            if (navigator.share) {
+                // Show a tiny tooltip/button near cursor to share
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-success position-fixed';
+                btn.style.left = (event.pageX + 10) + 'px';
+                btn.style.top = (event.pageY + 10) + 'px';
+                btn.textContent = 'Share quote';
+                document.body.appendChild(btn);
+                const cleanup = ()=>{ btn.remove(); document.removeEventListener('scroll', cleanup); };
+                document.addEventListener('scroll', cleanup, { once: true });
+                btn.addEventListener('click', async ()=>{
+                    try { await navigator.share(shareData); } catch(e) {}
+                    cleanup();
+                }, { once: true });
+                setTimeout(cleanup, 4000);
+            }
+        }
+    });
+
+    // Persist client-side reading position as a quick fallback
+    document.addEventListener('kg:page-changed', function(e){
+        const { ebookId, page } = e.detail || {};
+        if (ebookId && page) localStorage.setItem(`book_${ebookId}_page`, page);
+    });
+
     // Navigation active state
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
@@ -152,6 +189,24 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
         });
+    });
+
+    // Smooth scrolling for anchor links
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href^="#"]');
+        if (link) {
+            const href = link.getAttribute('href');
+            if (href !== '#') {
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        }
     });
 
     // Keyboard shortcuts

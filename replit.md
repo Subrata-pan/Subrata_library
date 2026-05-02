@@ -1,47 +1,66 @@
-# KitabGhar - Digital Library Management System
+# Dev and Deployment Guide
 
-## Overview
+## Local Setup (Windows / PowerShell)
 
-KitabGhar is a Flask-based digital library management system designed for uploading, organizing, and accessing PDF ebooks. The application provides a clean web interface for users to manage their personal digital book collection with features including file uploads, categorization, search functionality, and detailed book management.
+1. Create and activate a virtual environment
+```
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-## User Preferences
+2. Install dependencies
+```
+pip install -r requirements.txt
+```
 
-Preferred communication style: Simple, everyday language.
+3. Set environment variables (optional)
+```
+$env:FLASK_ENV="development"
+$env:SESSION_SECRET="dev-secret-change"
+# For Google OAuth (optional):
+# $env:GOOGLE_CLIENT_ID="<your-client-id>"
+# $env:GOOGLE_CLIENT_SECRET="<your-client-secret>"
+```
 
-## System Architecture
+4. Initialize database (first run)
+```
+python - <<'PY'
+from app import app, db
+with app.app_context():
+    db.create_all()
+print('DB initialized')
+PY
+```
 
-### Frontend Architecture
-The application uses a server-side rendered approach with Flask templates and Bootstrap for responsive UI design. The frontend consists of:
+5. Run the app
+```
+python main.py
+```
 
-- **Template Engine**: Jinja2 templates with a base template inheritance pattern
-- **UI Framework**: Bootstrap 5 with dark theme for consistent styling
-- **Icons**: Font Awesome for visual elements
-- **JavaScript**: Vanilla JavaScript for client-side interactions including form validation, tooltips, and auto-dismissing alerts
-- **Responsive Design**: Mobile-first approach with responsive grid layouts
+Visit http://localhost:5000
 
-### Backend Architecture
-Built on Flask with a modular structure separating concerns:
+## Free Hosting
 
-- **Web Framework**: Flask with SQLAlchemy ORM for database operations
-- **Database Layer**: SQLAlchemy with SQLite as default database, configurable via environment variables
-- **File Handling**: Secure file uploads with validation, stored in local uploads directory
-- **Session Management**: Flask sessions with configurable secret key
-- **Middleware**: ProxyFix for handling reverse proxy headers
-- **Logging**: Built-in Python logging for debugging and monitoring
+- Render (recommended):
+  - Create new Web Service → Connect repo
+  - Build command: `pip install -r requirements.txt`
+  - Start command: `gunicorn app:app`
+  - Environment: set `PYTHON_VERSION` to your local Python (e.g. 3.11)
+  - Add `DATABASE_URL` if using external DB. Default SQLite is fine for demos.
 
-### Data Storage
-The application uses a relational database approach with two main entities:
+- Railway: Similar to Render. Start command `gunicorn app:app`.
 
-- **Ebook Model**: Stores book metadata including title, author, category, file information, upload dates, and descriptions
-- **Category Model**: Manages book categories with descriptions and creation dates
-- **File Storage**: Physical PDF files stored in local filesystem with secure filename handling
-- **Database Configuration**: Supports both SQLite (development) and PostgreSQL (production) via DATABASE_URL environment variable
+## Features
 
-### Key Design Patterns
-- **MVC Pattern**: Clear separation between models (data), views (templates), and controllers (routes)
-- **Factory Pattern**: Database and application initialization with proper context management
-- **Repository Pattern**: SQLAlchemy ORM abstracts database operations
-- **Template Inheritance**: Base template with block-based content sections for consistency
+- Advanced search & filters (author, category, language, date).
+- Recommendations based on reading history.
+- Reading progress sync + bookmarks.
+- PDF reader with robust error handling and TTS option.
+- "Recommended for You" sidebar while reading.
+- Accessibility menu: font size, high-contrast, TTS toggle.
+- Social sharing for quotes and progress.
+- Google Sign-In optional.
+- Premium responsive UI with lazy-loaded images and SEO meta.
 
 ## External Dependencies
 

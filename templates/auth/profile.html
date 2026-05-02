@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-success mb-0"><i class="fas fa-user"></i> Your Profile</h3>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-3">Name</dt>
+          <dd class="col-sm-9">{{ current_user.get_full_name() }}</dd>
+          <dt class="col-sm-3">Email</dt>
+          <dd class="col-sm-9">{{ current_user.email }}</dd>
+          <dt class="col-sm-3">Username</dt>
+          <dd class="col-sm-9">{{ current_user.username }}</dd>
+          <dt class="col-sm-3">Role</dt>
+          <dd class="col-sm-9">{{ current_user.role }}</dd>
+        </dl>
+      </div>
+      <div class="card-footer d-flex gap-2">
+        <a href="{{ url_for('notifications') }}" class="btn btn-outline-primary">
+          <i class="fas fa-bell me-1"></i>View Notifications
+          {% set unread_count = current_user.notifications|selectattr('is_read', 'equalto', False)|list|length %}
+          {% if unread_count > 0 %}
+          <span class="badge bg-danger ms-1">{{ unread_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-outline-success">Edit Profile</a>
+        <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary">Change Password</a>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <h4 class="text-success mb-0"><i class="fab fa-google me-2"></i>Saved Google Books</h4>
+      </div>
+      <div class="card-body">
+        {% if current_user.saved_books %}
+        <div class="row g-3">
+          {% for book in current_user.saved_books %}
+          <div class="col-md-6">
+            <div class="d-flex gap-3 border rounded p-3 h-100">
+              <img src="{{ book.thumbnail_url or url_for('static', filename='images/recent_add.jpg') }}"
+                   alt="{{ book.title }}"
+                   class="rounded"
+                   style="width: 72px; height: 100px; object-fit: cover;"
+                   onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/recent_add.jpg') }}';">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">{{ book.title }}</h6>
+                {% if book.author %}
+                <p class="text-muted small mb-1">{{ book.author }}</p>
+                {% endif %}
+                {% if book.published_year %}
+                <p class="text-muted small mb-2">{{ book.published_year }}</p>
+                {% endif %}
+                {% if book.preview_link %}
+                <a href="{{ book.preview_link }}" class="btn btn-outline-primary btn-sm" target="_blank" rel="noopener noreferrer">
+                  <i class="fas fa-eye me-1"></i>Preview
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No Google Books saved yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

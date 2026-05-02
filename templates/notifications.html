@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm rounded">
+            <div class="card-header bg-primary text-white rounded-top shadow-sm">
+                <h3 class="mb-0">
+                    <i class="fas fa-bell me-2"></i>
+                    Your Notifications
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <div class="list-group-item {% if not notification.is_read %}list-group-item-warning{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div class="flex-grow-1">
+                                <p class="mb-1">{{ notification.message }}</p>
+                                <small class="text-muted">
+                                    {{ notification.created_at.strftime("%B %d, %Y at %I:%M %p") }}
+                                </small>
+                            </div>
+                            {% if not notification.is_read %}
+                            <button class="btn btn-sm btn-outline-success ms-2 mark-read-btn"
+                                    data-id="{{ notification.id }}"
+                                    title="Mark as read">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info rounded shadow-sm">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No notifications yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark notification as read
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-id');
+            fetch(`/notifications/mark_read/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.closest('.list-group-item').classList.remove('list-group-item-warning');
+                    this.remove();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+{% endblock %}
