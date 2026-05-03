@@ -18,7 +18,7 @@ from decorators import author_required, owns_book_or_admin
 
 ALLOWED_EXTENSIONS = {'pdf'}
 ALLOWED_IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
-ADMIN_EMAIL = 'simapan1996@gmail.com'  # Owner's email
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'simapan1996@gmail.com')  # Owner's email
 
 def allowed_file(filename):
     """Check if the file has an allowed extension"""

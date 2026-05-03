@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 
 from extensions import db
 
@@ -30,7 +30,11 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///instance/kitabghar.db")
+database_url = os.environ.get("DATABASE_URL", "sqlite:///instance/kitabghar.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
@@ -84,24 +88,27 @@ with app.app_context():
     # Create all tables
     db.create_all()
 
-    # Create default admin user if not exists
-    import uuid
+    # Optionally create/update an admin user from environment variables.
     from models import User
-    from werkzeug.security import generate_password_hash
 
-    admin_user = User.query.filter_by(email='simapan1996@gmail.com').first()
+    admin_email = os.environ.get("ADMIN_EMAIL")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
 
-    if admin_user:
-        admin_user.role = "admin"
-    else:
-        admin_user = User(
-            username='admin_' + str(uuid.uuid4())[:5],  # ensure unique username
-            email='simapan1996@gmail.com',
-            first_name='Admin',
-            last_name='User',
-            role='admin',
-        )
-        admin_user.set_password('admin123')
-        db.session.add(admin_user)
+    if admin_email and admin_password:
+        admin_user = User.query.filter_by(email=admin_email).first()
 
-    db.session.commit()
+        if admin_user:
+            admin_user.role = "admin"
+            admin_user.set_password(admin_password)
+        else:
+            admin_user = User(
+                username=admin_email.split("@")[0],
+                email=admin_email,
+                first_name='Admin',
+                last_name='User',
+                role='admin',
+            )
+            admin_user.set_password(admin_password)
+            db.session.add(admin_user)
+
+        db.session.commit()
