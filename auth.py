@@ -28,6 +28,10 @@ def get_google_oauth_config(app):
     ).strip()
     return client_id, client_secret
 
+def get_admin_email():
+    """Return the configured admin email in normalized form."""
+    return os.environ.get("ADMIN_EMAIL", "simapan1996@gmail.com").strip().lower()
+
 def build_unique_username(email, name):
     """Create a unique username for Google sign-ins."""
     base_username = (email.split('@')[0] if email else name or 'user').replace(' ', '_')
@@ -74,8 +78,8 @@ def login():
                 flash('Your account is inactive. Please contact the administrator.', 'error')
                 return render_template('auth/login.html')
 
-            # Force role to admin if email matches
-            if user.email == "simapan1996@gmail.com":
+            # Force role to admin if email matches the configured owner account.
+            if user.email.lower() == get_admin_email():
                 user.role = "admin"
             else:
                 user.role = "user"
@@ -153,8 +157,8 @@ def register():
 
         # Create new user
         try:
-            # Force role to admin if email matches
-            if email == "simapan1996@gmail.com":
+            # Force role to admin if email matches the configured owner account.
+            if email == get_admin_email():
                 role = "admin"
             else:
                 role = "user"
@@ -361,7 +365,7 @@ def google_auth():
         user.set_password(os.urandom(16).hex())
         db.session.add(user)
         db.session.commit()
-    if user.email == "simapan1996@gmail.com":
+    if user.email.lower() == get_admin_email():
         user.role = "admin"
     else:
         user.role = "user"

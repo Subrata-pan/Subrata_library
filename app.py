@@ -91,7 +91,7 @@ with app.app_context():
     # Optionally create/update an admin user from environment variables.
     from models import User
 
-    admin_email = os.environ.get("ADMIN_EMAIL")
+    admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     admin_password = os.environ.get("ADMIN_PASSWORD")
 
     if admin_email and admin_password:
