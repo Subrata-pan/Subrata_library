@@ -30,15 +30,21 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Configure the database
-database_url = os.environ.get("DATABASE_URL", "sqlite:///instance/kitabghar.db")
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    if os.environ.get("RENDER"):
+        raise RuntimeError("DATABASE_URL must be set to a Render PostgreSQL connection string.")
+    database_url = "sqlite:///instance/kitabghar.db"
+
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
     "pool_pre_ping": True,
 }
+if database_url.startswith("postgresql://"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"]["pool_recycle"] = 300
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
