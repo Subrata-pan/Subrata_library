@@ -140,6 +140,7 @@ def register():
         # Check for existing users
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
+            flash('An account with this email already exists. Please log in with that account.', 'info')
             return redirect(url_for("auth.login"))
 
         if User.query.filter_by(username=username).first():

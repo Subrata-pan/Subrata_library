@@ -105,7 +105,6 @@ with app.app_context():
 
         if admin_user:
             admin_user.role = "admin"
-            admin_user.set_password(admin_password)
         else:
             admin_user = User(
                 username=admin_email.split("@")[0],
