@@ -22,7 +22,10 @@ ADMIN_PASSWORD=use_a_strong_password
 MAIL_DEFAULT_SENDER=your_email@gmail.com
 MAIL_USERNAME=your_email@gmail.com
 MAIL_PASSWORD=your_gmail_app_password
+WTF_CSRF_SSL_STRICT=False
 ```
+
+If login returns a 400 error after deployment, confirm `WTF_CSRF_SSL_STRICT` is set to `False` and redeploy the latest commit.
 
 Optional Google sign-in/search variables:
 

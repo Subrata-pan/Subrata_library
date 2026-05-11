@@ -47,6 +47,7 @@ if database_url.startswith("postgresql://"):
     app.config["SQLALCHEMY_ENGINE_OPTIONS"]["pool_recycle"] = 300
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['PREFERRED_URL_SCHEME'] = 'https'
+app.config["WTF_CSRF_SSL_STRICT"] = os.environ.get("WTF_CSRF_SSL_STRICT", "False").lower() == "true"
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -105,6 +106,7 @@ with app.app_context():
 
         if admin_user:
             admin_user.role = "admin"
+            admin_user.set_password(admin_password)
         else:
             admin_user = User(
                 username=admin_email.split("@")[0],

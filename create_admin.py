@@ -9,7 +9,10 @@ def create_admin_user():
         admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
         existing_admin = User.query.filter_by(email=admin_email).first()
         if existing_admin:
-            print("Admin user already exists.")
+            existing_admin.role = "admin"
+            existing_admin.set_password(admin_password)
+            db.session.commit()
+            print("Admin user already exists. Role and password updated.")
             return
         admin_user = User(
             username="admin",
