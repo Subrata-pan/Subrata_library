@@ -70,6 +70,16 @@ def ensure_admin_user(email=None, password=None):
     db.session.commit()
     return user
 
+def normalize_user_role(user, admin_email=None):
+    """Keep admin accounts admin without downgrading them on login."""
+    configured_admin_email = (admin_email or get_admin_email()).strip().lower()
+    current_role = (user.role or "").strip().lower()
+
+    if user.email.lower() == configured_admin_email or current_role == "admin":
+        user.role = "admin"
+    elif current_role != "user":
+        user.role = "user"
+
 def build_unique_username(email, name):
     """Create a unique username for Google sign-ins."""
     base_username = (email.split('@')[0] if email else name or 'user').replace(' ', '_')
@@ -138,11 +148,7 @@ def login():
                 flash('Your account is inactive. Please contact the administrator.', 'error')
                 return render_template('auth/login.html')
 
-            # Force role to admin if email matches the configured owner account.
-            if user.email.lower() == admin_email:
-                user.role = "admin"
-            else:
-                user.role = "user"
+            normalize_user_role(user, admin_email)
 
             from datetime import datetime
             user.last_login = datetime.utcnow()
@@ -218,11 +224,7 @@ def register():
 
         # Create new user
         try:
-            # Force role to admin if email matches the configured owner account.
-            if email == get_admin_email():
-                role = "admin"
-            else:
-                role = "user"
+            role = "admin" if email == get_admin_email() else "user"
 
             user = User(
                 username=username,
@@ -426,10 +428,7 @@ def google_auth():
         user.set_password(os.urandom(16).hex())
         db.session.add(user)
         db.session.commit()
-    if user.email.lower() == get_admin_email():
-        user.role = "admin"
-    else:
-        user.role = "user"
+    normalize_user_role(user)
     db.session.commit()
     session["role"] = user.role
     login_user(user)
