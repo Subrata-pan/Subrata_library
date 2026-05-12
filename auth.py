@@ -125,6 +125,8 @@ def login():
         admin_password = get_admin_password()
         is_admin_login = login_identifier == admin_email
 
+        admin_login_env_missing = is_admin_login and not admin_password
+
         if not user and is_admin_login and admin_password and password == admin_password:
             try:
                 user = ensure_admin_user(admin_email, admin_password)
@@ -166,7 +168,10 @@ def login():
             else:
                 return redirect(url_for('home'))
         else:
-            flash('Invalid username/email or password.', 'error')
+            if admin_login_env_missing:
+                flash('Admin password is not configured on the server. Set ADMIN_PASSWORD and redeploy.', 'error')
+            else:
+                flash('Invalid username/email or password.', 'error')
 
     return render_template('auth/login.html')
 
