@@ -96,26 +96,8 @@ with app.app_context():
     db.create_all()
 
     # Optionally create/update an admin user from environment variables.
-    from models import User
-
-    admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
-    admin_password = os.environ.get("ADMIN_PASSWORD")
-
-    if admin_email and admin_password:
-        admin_user = User.query.filter_by(email=admin_email).first()
-
-        if admin_user:
-            admin_user.role = "admin"
-            admin_user.set_password(admin_password)
-        else:
-            admin_user = User(
-                username=admin_email.split("@")[0],
-                email=admin_email,
-                first_name='Admin',
-                last_name='User',
-                role='admin',
-            )
-            admin_user.set_password(admin_password)
-            db.session.add(admin_user)
-
-        db.session.commit()
+    try:
+        auth.ensure_admin_user()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Failed to create or update the configured admin user.")

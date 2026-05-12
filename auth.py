@@ -32,6 +32,44 @@ def get_admin_email():
     """Return the configured admin email in normalized form."""
     return os.environ.get("ADMIN_EMAIL", "simapan1996@gmail.com").strip().lower()
 
+def get_admin_password():
+    """Return the configured admin password, if one was explicitly provided."""
+    return os.environ.get("ADMIN_PASSWORD", "")
+
+def ensure_admin_user(email=None, password=None):
+    """Create or repair the configured admin user when deploy env vars exist."""
+    admin_email = (email or get_admin_email()).strip().lower()
+    admin_password = password if password is not None else get_admin_password()
+
+    if not admin_email or not admin_password:
+        return None
+
+    user = User.query.filter(func.lower(User.email) == admin_email).first()
+    if user:
+        changed = False
+        if user.role != "admin":
+            user.role = "admin"
+            changed = True
+        if not user.check_password(admin_password):
+            user.set_password(admin_password)
+            changed = True
+        if changed:
+            db.session.commit()
+        return user
+
+    username = build_unique_username(admin_email, "admin")
+    user = User(
+        username=username,
+        email=admin_email,
+        first_name="Admin",
+        last_name="User",
+        role="admin",
+    )
+    user.set_password(admin_password)
+    db.session.add(user)
+    db.session.commit()
+    return user
+
 def build_unique_username(email, name):
     """Create a unique username for Google sign-ins."""
     base_username = (email.split('@')[0] if email else name or 'user').replace(' ', '_')
@@ -73,13 +111,35 @@ def login():
             )
         ).first()
 
-        if user and user.check_password(password):
+        admin_email = get_admin_email()
+        admin_password = get_admin_password()
+        is_admin_login = login_identifier == admin_email
+
+        if not user and is_admin_login and admin_password and password == admin_password:
+            try:
+                user = ensure_admin_user(admin_email, admin_password)
+            except Exception:
+                db.session.rollback()
+                user = None
+
+        password_is_valid = bool(user and user.check_password(password))
+        if user and not password_is_valid and is_admin_login and admin_password and password == admin_password:
+            try:
+                user.set_password(admin_password)
+                user.role = "admin"
+                db.session.commit()
+                password_is_valid = True
+            except Exception:
+                db.session.rollback()
+                password_is_valid = False
+
+        if user and password_is_valid:
             if not user.is_active:
                 flash('Your account is inactive. Please contact the administrator.', 'error')
                 return render_template('auth/login.html')
 
             # Force role to admin if email matches the configured owner account.
-            if user.email.lower() == get_admin_email():
+            if user.email.lower() == admin_email:
                 user.role = "admin"
             else:
                 user.role = "user"
